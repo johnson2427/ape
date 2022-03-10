@@ -5,7 +5,7 @@ import pandas as pd
 
 from ape.api import BlockAPI, ReceiptAPI
 from ape.api.address import BaseAddress
-from ape.api.query import BlockQuery, QueryAPI
+from ape.api.query import BlockQuery
 from ape.exceptions import ChainError, UnknownSnapshotError
 from ape.logging import logger
 from ape.types import AddressType, BlockID, SnapshotID
@@ -88,7 +88,7 @@ class BlockContainer(BaseManager):
 
     def query(
         self,
-        *columns: List[str],
+        *projection: List[str],
         start_block: int = 0,
         stop_block: Optional[int] = None,
         engine_to_use: Optional[str] = None,
@@ -104,7 +104,7 @@ class BlockContainer(BaseManager):
               than the chain length.
 
         Args:
-            columns (List[str]): columns in the DataFrame to return
+            projection (List[str]): The projected columns to return in the DataFrame
             start_block (int): The first block, by number, to include in the
               query. Defaults to 0.
             stop_block (Optional[int]): The last block, by number, to include
@@ -126,7 +126,7 @@ class BlockContainer(BaseManager):
             )
 
         query = BlockQuery(
-            columns=columns,
+            projection=projection,
             start_block=start_block,
             stop_block=stop_block,
             engine_to_use=engine_to_use,

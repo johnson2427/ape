@@ -1,10 +1,11 @@
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, ClassVar, Dict, List, Optional, Type, Union
 
 import pandas as pd
 from ethpm_types.abi import EventABI, MethodABI
-from pydantic import BaseModel, NonNegativeInt, root_validator
+from pydantic import BaseModel, NonNegativeInt, root_validator, validator
 
-from ape._compat import Literal
+from ape.api.providers import BlockAPI
+from ape.exceptions import QueryError
 from ape.types import AddressType
 from ape.utils import BaseInterfaceModel, abstractmethod
 
@@ -12,11 +13,24 @@ QueryType = Union["BlockQuery", "AccountQuery", "ContractEventQuery", "ContractM
 
 
 class _BaseQuery(BaseModel):
-    type: str  # Used as discriminator
-    columns: List[str]
+    model: ClassVar[Type[BaseInterfaceModel]] = BlockAPI
+    projection: List[str]
+
+    @validator("projection")
+    def check_projection(cls, value) -> List[str]:
+        columns = list(cls.model.__fields__.keys())
+
+        if value == ["*"]:
+            return columns
+
+        if not set(value).issubset(set(columns)):
+            raise QueryError(f"Query contains non-existent columns '{set(value) - set(columns)}'.")
+
+        return value
 
 
 class _BaseBlockQuery(_BaseQuery):
+
     start_block: NonNegativeInt = 0
     stop_block: NonNegativeInt
 
@@ -37,10 +51,9 @@ class BlockQuery(_BaseBlockQuery):
     blocks between ``start_block`` and ``stop_block``.
     """
 
-    type: Literal["blocks"] = "blocks"
-
 
 class _BaseAccountQuery(BaseModel):
+
     start_nonce: NonNegativeInt = 0
     stop_nonce: NonNegativeInt
 
@@ -61,7 +74,6 @@ class AccountQuery(_BaseAccountQuery):
     of transactions made by ``account`` between ``start_nonce`` and ``stop_nonce``.
     """
 
-    type: Literal["accounts"] = "accounts"
     account: AddressType
 
 
@@ -71,7 +83,6 @@ class ContractEventQuery(_BaseBlockQuery):
     logs emitted by ``contract`` between ``start_block`` and ``stop_block``.
     """
 
-    type: Literal["contract_events"] = "contract_events"
     contract: AddressType
     event: EventABI
 
@@ -82,7 +93,6 @@ class ContractMethodQuery(_BaseBlockQuery):
     over a range of blocks between ``start_block`` and ``stop_block``.
     """
 
-    type: Literal["contract_calls"] = "contract_calls"
     contract: AddressType
     method: MethodABI
     method_args: Dict[str, Any]

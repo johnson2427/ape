@@ -1,18 +1,12 @@
-from functools import partial
-from typing import Any, Dict, Optional
+from typing import Dict, Optional
 
 import pandas as pd
-from pydantic import BaseModel
 
 from ape.api import QueryAPI, QueryType
-from ape.api.query import BlockQuery, _BaseQuery
+from ape.api.query import BlockQuery
 from ape.exceptions import QueryEngineError
 from ape.plugins import clean_plugin_name
 from ape.utils import ManagerAccessMixin, cached_property
-
-
-def get_columns_from_item(query: _BaseQuery, item: BaseModel) -> Dict[str, Any]:
-    return {k: v for k, v in item.dict().items() if k in query.columns}
 
 
 class DefaultQueryProvider(QueryAPI):
@@ -49,8 +43,9 @@ class DefaultQueryProvider(QueryAPI):
         """
         if isinstance(query, BlockQuery):
             blocks_iter = self.chain_manager.blocks.range(query.start_block, query.stop_block)
-            block_dicts_iter = map(partial(get_columns_from_item, query), blocks_iter)
-            return pd.DataFrame(columns=query.columns, data=block_dicts_iter)
+            return pd.DataFrame(columns=query.model.__fields__.keys(), data=blocks_iter)[
+                query.projection
+            ]
 
         raise QueryEngineError(f"Cannot handle '{type(query)}'.")
 

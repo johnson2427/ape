@@ -221,6 +221,12 @@ class UnknownSnapshotError(ChainError):
         super().__init__(f"Unknown snapshot ID '{str(snapshot_id)}'.")
 
 
+class QueryError(ApeException):
+    """
+    Raised when issues occur during a query.
+    """
+
+
 class QueryEngineError(ApeException):
     """
     Raised when issues occur in a query engine.
