@@ -88,7 +88,7 @@ class BlockContainer(BaseManager):
 
     def query(
         self,
-        *projection: List[str],
+        *columns: List[str],
         start_block: int = 0,
         stop_block: Optional[int] = None,
         engine_to_use: Optional[str] = None,
@@ -104,7 +104,7 @@ class BlockContainer(BaseManager):
               than the chain length.
 
         Args:
-            projection (List[str]): The projected columns to return in the DataFrame
+            columns (List[str]): The columns to return in the DataFrame
             start_block (int): The first block, by number, to include in the
               query. Defaults to 0.
             stop_block (Optional[int]): The last block, by number, to include
@@ -126,7 +126,7 @@ class BlockContainer(BaseManager):
             )
 
         query = BlockQuery(
-            projection=projection,
+            columns=columns,
             start_block=start_block,
             stop_block=stop_block,
             engine_to_use=engine_to_use,

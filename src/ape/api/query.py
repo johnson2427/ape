@@ -14,9 +14,9 @@ QueryType = Union["BlockQuery", "AccountQuery", "ContractEventQuery", "ContractM
 
 class _BaseQuery(BaseModel):
     model: ClassVar[Type[BaseInterfaceModel]] = BlockAPI
-    projection: List[str]
+    columns: List[str]
 
-    @validator("projection")
+    @validator("columns")
     def check_projection(cls, value) -> List[str]:
         columns = list(cls.model.__fields__.keys())
 

@@ -43,9 +43,7 @@ class DefaultQueryProvider(QueryAPI):
         """
         if isinstance(query, BlockQuery):
             blocks_iter = self.chain_manager.blocks.range(query.start_block, query.stop_block)
-            return pd.DataFrame(columns=query.model.__fields__.keys(), data=blocks_iter)[
-                query.projection
-            ]
+            return pd.DataFrame(columns=query.columns, data=[x.dict() for x in blocks_iter])
 
         raise QueryEngineError(f"Cannot handle '{type(query)}'.")
 
